@@ -18,7 +18,7 @@ double dphi_dx(double x, double y) {
 double dphi_dy(double x, double y) {
     double numerator = 1 - 2*y;
 
-    double denumerator = pow(2, 0.5)* pow(y-pow(y,2), 0.5);
+    double denumerator = pow(2, 0.5)*pow(y-y*y, 0.5);
 
     return numerator/denumerator; 
 }
@@ -33,21 +33,24 @@ double dpsi_dy(double x, double y) {
 
 // Частные производные для Df
 double df_dx(double x, double y) {
+    // double numerator = 1.0; 
+    // double denumerator = 2*pow(1-x, 0.5); 
+    // return numerator/denumerator;
+    return 2*x;
+}
+
+double df_dy(double x, double y) {
+    return 4*y-2;
+}
+
+double dg_dx(double x, double y) {
     double numerator = 1.0; 
     double denumerator = 2*pow(1-x, 0.5); 
     return numerator/denumerator;
 }
 
-double df_dy(double x, double y) {
-    return -1;
-}
-
-double dg_dx(double x, double y) {
-    return 2*x;
-}
-
 double dg_dy(double x, double y) {
-    return 4*y-2;
+    return -1;
 }
 
 // Обратный Якобиан для Df
@@ -79,7 +82,7 @@ double matrix_norm(double J[2][2]) {
 
 // Функции для итерационного процесса
 double phi_x(double x, double y) {
-    return pow(2,0.5)*pow(y-pow(y,2),0.5);
+    return pow(2,0.5)*pow(y-y*y,0.5);
 }
 
 double phi_y(double x, double y) {
@@ -88,11 +91,12 @@ double phi_y(double x, double y) {
 
 // Сами функции f и g
 double f(double x, double y) {
-    return pow(x+1, 0.5) - y;
+    return pow(x,2)+2*pow(y,2)-2*y;
+    
 }
 
 double g(double x, double y) {
-    return pow(x,2)+2*pow(y,2)-2*y;
+    return pow(1-x, 0.5) - y;
 }
 
 // Вычисление q и mu для сегмента
@@ -209,6 +213,7 @@ void newton_method(double initial_points[1][2], double mu, double epsilon) {
     double x_new, y_new;
     int iter = 0;
 
+    // printf("x_prev= %.4f, y_prev = %.4f\n", x_prev, y_prev);
     while (true) {
         double Jf_inv[2][2];
         inverse_jacobian(x_prev, y_prev, Jf_inv);
@@ -219,6 +224,7 @@ void newton_method(double initial_points[1][2], double mu, double epsilon) {
         x_new = x_prev + delta_x;
         y_new = y_prev + delta_y;
 
+        // printf("x_new = %.4f, y_new = %.4f\n", x_new, y_new);
         if (euclidean_distance(x_prev, y_prev, x_new, y_new) < epsilon / mu) {
             break;
         }
@@ -235,9 +241,17 @@ void newton_method(double initial_points[1][2], double mu, double epsilon) {
 }
 
 int main() {
-    double initial_points[1][2] = { { 0.66, 0.5 } };   // Начальные значения для сегмента 
-    double segments[1][4] = { {0.5, 0.75, 0.25, 0.75} };  // Для одного сегмента
+    FILE * file_out;
+    double initial_points[1][2] = { { 0.6, 0.5 } };   // Начальные значения для сегмента 
+    double segments[1][4] = { {0.5, 0.74, 0.25, 0.75} };  // Для одного сегмента
     int num_segments = 1;  // Количество сегментов
+
+    // Открываем файл для записи
+    file_out = freopen("output.txt", "w", stdout);
+    if (!file_out) {
+        perror("Failed to open file");
+        return 1;
+    }
 
     // Динамическое выделение памяти под массивы q и mu
     double* q = (double*)malloc(num_segments * sizeof(double));
@@ -258,9 +272,11 @@ int main() {
 
         // Выполняем методы для каждого сегмента
         seidel_method(initial_points, EPSILON);
-        iterative_method(initial_points, 0.5, EPSILON);
+        iterative_method(initial_points, q[i], EPSILON);
         newton_method(initial_points, mu[i], EPSILON);
     }
+
+    fclose(file_out);
 
     // Освобождение выделенной памяти
     free(q);
