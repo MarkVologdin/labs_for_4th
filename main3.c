@@ -72,7 +72,7 @@ int main() {
         h_min = initial_h_min*1000000;
         for (int j = 0; j < k; j++) {
             error = check_error(functions[i], x0, h_min);
-            printf("Approx_derivative = %.4f\n",(1 * sin(x0) - 2 * sin(x0 + h_min) + sin(x0 + 2 * h_min)) / ( h_min*h_min));
+    
             fprintf(file, "Step size h: %.10e\n", h_min);
             fprintf(file, "Approximation error for h: %.10e\n\n", error); // Write errors to file
 
