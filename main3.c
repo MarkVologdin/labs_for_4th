@@ -33,12 +33,12 @@ double check_error(const char* func_name, double x, double h) {
         return fabs((approx_derivative + sin(x)) / sin(x));
     }
     else if (strcmp(func_name, "10^5*sin(x)") == 0) {
-        approx_derivative = (-100000 * sin(x) - 200000 * sin(x + h) + 100000 * sin(x + 2 * h)) / (h * h);
+        approx_derivative = (100000 * sin(x) - 200000 * sin(x + h) + 100000 * sin(x + 2 * h)) / (h * h);
         return fabs((approx_derivative + 100000 * sin(x)) / (100000 * sin(x)));
     }
     else if (strcmp(func_name, "tan(x)") == 0) {
         approx_derivative = (1 * tan(x) - 2 * tan(x + h) + tan(x + 2 * h)) / (h * h);
-        return fabs((approx_derivative + 2*sin(x)/pow(cos(x),3) / (2*sin(x)/pow(cos(x),3))));
+        return fabs((approx_derivative - 2*sin(x)/pow(cos(x),3)) / (2*sin(x)/pow(cos(x),3)));
     }
     else {
         return 0.0;
@@ -58,7 +58,7 @@ int main() {
     fprintf(file, "Machine epsilon (double): %.16e\n", epsilon_machine); // Write to file
 
     double x0 = 1.59; // Evaluation point
-    double initial_h_min = pow(epsilon_machine, 1.0 / 3.0);
+    double initial_h_min = pow(epsilon_machine, 1.0/2.0);
     double h_min; // Current step size
     double error;
     int k = 6; // Number of step size divisions
@@ -69,10 +69,10 @@ int main() {
     for (int i = 0; i < num_functions; i++) {
         fprintf(file, "Function: %s\n", functions[i]);
         M3 = third_derivative(functions[i], x0);
-        h_min = initial_h_min;
-        for (int j = 0; j <= k; j++) {
+        h_min = initial_h_min*1000000;
+        for (int j = 0; j < k; j++) {
             error = check_error(functions[i], x0, h_min);
-
+            printf("Approx_derivative = %.4f\n",(1 * sin(x0) - 2 * sin(x0 + h_min) + sin(x0 + 2 * h_min)) / ( h_min*h_min));
             fprintf(file, "Step size h: %.10e\n", h_min);
             fprintf(file, "Approximation error for h: %.10e\n\n", error); // Write errors to file
 
